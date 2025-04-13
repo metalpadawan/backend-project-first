@@ -7,7 +7,15 @@ db.pragma("journal_mode = WAL")
 // code to set up database
 
 // database setup here part 2 stores users table
-
+const createTables = db.transaction(() => {
+    db.prepare(`
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username STRING NOT NULL UNIQUE,
+            password STRING NOT NULL
+        )
+        `).run()
+})
 // database setup ends here
 
 const app = express()
