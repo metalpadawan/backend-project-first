@@ -18,6 +18,9 @@ const createTables = db.transaction(() => {
 })
 // database setup ends here
 
+createTables()
+// creates the table if it doesn't exist
+
 const app = express()
 
 app.set("view engine", "ejs")
