@@ -19,7 +19,6 @@ const createTables = db.transaction(() => {
 
 createTables()
 // creates the table if it doesn't exist
-
 // database setup ends here
 
 const app = express()
@@ -29,6 +28,8 @@ app.use(express.urlencoded({ extended: true }))
 // In order to access username and passwords input, you need to enable it in express: app.use(express.urlencoded({ extended: true }))
 app.use(express.static("public"))
 
+// code below is called middleware
+// middleware is a function that runs before the route handler
 app.use(function (req, res, next) {
     res.locals.errors = []
     next()
@@ -56,13 +57,13 @@ app.post("/register", (req, res) => {
     req.body.username = req.body.username.trim()
 
     if (!req.body.username) errors.push("Username is required")
-    if (!req.body.username && req.body.username.length < 3) errors.push("Username must be at least 3 characters long")
-    if (!req.body.username && req.body.username.length > 10) errors.push("Username must be at most 10 characters long")
+    if (req.body.username && req.body.username.length < 3) errors.push("Username must be at least 3 characters long")
+    if (req.body.username && req.body.username.length > 10) errors.push("Username must be at most 10 characters long")
     if (req.body.username && !req.body.username.match(/^[a-zA-Z0-9]+$/)) errors.push("Username must contain at least one lowercase letter")
     
-    if (!req.body.passwor) errors.push("Password is required")
-    if (!req.body.password && req.body.password.length < 3) errors.push("Password must be at least 3 characters long")
-    if (!req.body.password && req.body.password.length > 10) errors.push("Password must be at most 10 characters long")
+    if (!req.body.password) errors.push("Password is required")
+    if (req.body.password && req.body.password.length < 3) errors.push("Password must be at least 3 characters long")
+    if (req.body.password && req.body.password.length > 20) errors.push("Password must be at most 10 characters long")
     
     if (errors.length) {
         return res.render("homepage", {errors})
@@ -70,9 +71,14 @@ app.post("/register", (req, res) => {
     //     res.send("Registered successfully")
     // End the request and paste message in the browser
     }
-    
 
-    
+    // save the new user into a database
+    const ourStatement = db.prepare("INSERT INTO users (username, password) VALUES (?, ?)")
+    ourStatement.run(req.body.username, req.body.password)
+
+    // log the user in by giving them a cookie
+
+    res.send("Thank you")
 })
 
 app.listen(3000)
