@@ -16,10 +16,11 @@ const createTables = db.transaction(() => {
         )
         `).run()
 })
-// database setup ends here
 
 createTables()
 // creates the table if it doesn't exist
+
+// database setup ends here
 
 const app = express()
 
