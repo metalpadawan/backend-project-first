@@ -1,3 +1,4 @@
+const bcrypt = require("bcrypt")
 const express = require("express")
 // start of database set up code part 1
 // To start call the database launguage and name the app
@@ -73,6 +74,11 @@ app.post("/register", (req, res) => {
     }
 
     // save the new user into a database
+
+    // hash the password simply saying hide user information
+    const salt = bcrypt.genSaltSync(10)
+    req.body.password = bcrypt.hashSync(req.body.password, salt)
+    
     const ourStatement = db.prepare("INSERT INTO users (username, password) VALUES (?, ?)")
     ourStatement.run(req.body.username, req.body.password)
 
