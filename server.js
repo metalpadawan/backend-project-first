@@ -1,4 +1,5 @@
 const bcrypt = require("bcrypt")
+const { name } = require("ejs")
 const express = require("express")
 // start of database set up code part 1
 // To start call the database launguage and name the app
@@ -83,6 +84,19 @@ app.post("/register", (req, res) => {
     ourStatement.run(req.body.username, req.body.password)
 
     // log the user in by giving them a cookie
+    // to call the cookie, first give it a name
+    // second value is what you want the cookie to remember
+    // third argument is a configuration object
+    res.cookie("ourSimpleApp","supertopsecretvalue", {
+        httpOnly: true,
+        // this makes is so the clients can't access the cookies in the broswer
+        secure: true,
+        // this will make the browser only send cookies if it's in http
+        sameSite: "strict",
+        // to help agaisnt attacks
+        maxAge: 1000 * 60 * 60 * 24
+        // how long the cookie is good for
+    })
 
     res.send("Thank you")
 })
