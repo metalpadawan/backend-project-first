@@ -1,6 +1,16 @@
+// pull on dependencies at the very top
+
+// for the env to be able to view the environment variables for the b value
+require("dotenv").config()
+const jwt = require("jsonwebtoken")
+// for the webtoken
 const bcrypt = require("bcrypt")
+// for user data encription on the database
 const { name } = require("ejs")
+// ejs file
 const express = require("express")
+// the express is called here
+
 // start of database set up code part 1
 // To start call the database launguage and name the app
 const db = require("better-sqlite3")("ourApp.db")
@@ -81,9 +91,18 @@ app.post("/register", (req, res) => {
     req.body.password = bcrypt.hashSync(req.body.password, salt)
     
     const ourStatement = db.prepare("INSERT INTO users (username, password) VALUES (?, ?)")
-    ourStatement.run(req.body.username, req.body.password)
+    const result = ourStatement.run(req.body.username, req.body.password)
+
+    const lookupStatement = db.prepare("SELECT * FROM users WHERE ROWID = ?")
+    const ourUser = lookupStatement.get(result.lastInsertRowid)
+    // now we can use the ourUser the fill up userid: 4 instead
 
     // log the user in by giving them a cookie
+
+    // hides the value of the user's cookies using tokens
+    // to do that give it a secret value to verify that it was us that gave it that value (a, b the b part check the top for extra setup env)
+    // so we don't want to hard code it (userid: 4) instead we'll refer to the part where we saved the database
+    const ourTokenValue = jwt.sign({exp: 1, skyColor: "blue", userid: 4}, process.env.JWTSERCET) 
     // to call the cookie, first give it a name
     // second value is what you want the cookie to remember
     // third argument is a configuration object
@@ -95,7 +114,7 @@ app.post("/register", (req, res) => {
         sameSite: "strict",
         // to help agaisnt attacks
         maxAge: 1000 * 60 * 60 * 24
-        // how long the cookie is good for
+        // how long the cookie is good for. it is measured in milisecs
     })
 
     res.send("Thank you")
