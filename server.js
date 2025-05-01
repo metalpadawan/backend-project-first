@@ -6,6 +6,8 @@ const jwt = require("jsonwebtoken")
 // for the webtoken
 const bcrypt = require("bcrypt")
 // for user data encription on the database
+const cookieParser = require("cookie-parser")
+// for cookie parser this will call the dependency
 const { name } = require("ejs")
 // ejs file
 const express = require("express")
@@ -39,15 +41,32 @@ app.set("view engine", "ejs")
 app.use(express.urlencoded({ extended: true }))
 // In order to access username and passwords input, you need to enable it in express: app.use(express.urlencoded({ extended: true }))
 app.use(express.static("public"))
+app.use(cookieParser())
 
 // code below is called middleware
 // middleware is a function that runs before the route handler
 app.use(function (req, res, next) {
     res.locals.errors = []
+
+    try {
+        const decoded = jwt.verify(req.cookies.ourSimpleApp, process.env.JWTSECRET)
+        req.user = decoded
+    }   catch(err) {
+        req.user = false
+    }
+
+    res.locals.user = req.user
+    console.log(req.user)
+
     next()
 })
 
+// we call or use codes here
+
 app.get("/", (req, res) => {
+    if (req.user) {
+        return res.render("dashboard")
+    }
     res.render("homepage")
 })
 // define the route for the homepage
@@ -102,11 +121,15 @@ app.post("/register", (req, res) => {
     // hides the value of the user's cookies using tokens
     // to do that give it a secret value to verify that it was us that gave it that value (a, b the b part check the top for extra setup env)
     // so we don't want to hard code it (userid: 4) instead we'll refer to the part where we saved the database
-    const ourTokenValue = jwt.sign({exp: 1, skyColor: "blue", userid: 4}, process.env.JWTSERCET) 
+    // exp means expire google the use.
+    const ourTokenValue = jwt.sign(
+        {exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, skyColor: "blue", userid: ourUser.id, username: ourUser.username}, 
+        process.env.JWTSECRET
+    ) 
     // to call the cookie, first give it a name
     // second value is what you want the cookie to remember
     // third argument is a configuration object
-    res.cookie("ourSimpleApp","supertopsecretvalue", {
+    res.cookie("ourSimpleApp", ourTokenValue, {
         httpOnly: true,
         // this makes is so the clients can't access the cookies in the broswer
         secure: true,

@@ -10,7 +10,12 @@
     <header>
         <h2><a href="/">Dub or Sub</a></h2>
         <nav>
-            <a href="login">Log In</a>
+            <% if (user) { %>
+                <a href="/create-post">Create Post</a>
+                <a href="/logout">Log out</a>
+            <% } else { %>
+                <a href="/login">Log In</a>
+            <% } %>
         </nav>
     </header>
     <main>
